@@ -163,32 +163,31 @@ export default function ProjectDetail() {
   const findContainer = useCallback(
     (itemId) => {
       if (STATUSES.includes(itemId)) return itemId;
-      // Always look up in the original `tasks` list so the status isn't
-      // influenced by the optimistic localTasks update from onDragOver
-      const task = tasks.find((t) => t.id === itemId);
+      // Look up in displayTasks for accurate status
+      const task = displayTasks.find((t) => t.id === itemId);
       return task?.status || null;
     },
-    [tasks]
+    [displayTasks]
   );
 
   const handleDragStart = ({ active }) => {
-    const task = tasks.find((t) => t.id === active.id);
+    const task = displayTasks.find((t) => t.id === active.id);
     setActiveDrag(task || null);
     originContainerRef.current = task?.status || null;
-    setLocalTasks([...tasks]);
+    setLocalTasks([...displayTasks]);
   };
 
   const handleDragOver = ({ active, over }) => {
     if (!over) return;
     const overContainer = STATUSES.includes(over.id)
       ? over.id
-      : tasks.find((t) => t.id === over.id)?.status;
+      : displayTasks.find((t) => t.id === over.id)?.status;
     const origContainer = originContainerRef.current;
     if (!overContainer || !origContainer || overContainer === origContainer) return;
 
     // Optimistically move the card visually to the new column
     setLocalTasks((prev) => {
-      const cur = prev ?? tasks;
+      const cur = prev ?? displayTasks;
       return cur.map((t) =>
         t.id === active.id ? { ...t, status: overContainer } : t
       );
@@ -204,19 +203,24 @@ export default function ProjectDetail() {
 
     const overContainer = STATUSES.includes(over.id)
       ? over.id
-      : tasks.find((t) => t.id === over.id)?.status;
+      : displayTasks.find((t) => t.id === over.id)?.status;
 
     if (!overContainer) { setLocalTasks(null); return; }
 
     if (origContainer !== overContainer) {
       // Cross-column drop — persist the status change
-      await updateTask({ projectId: id, taskId: active.id, status: overContainer });
+      try {
+        await updateTask({ projectId: id, taskId: active.id, status: overContainer });
+      } catch (err) {
+        console.error('Failed to update task status:', err);
+        setLocalTasks(null);
+      }
       setLocalTasks(null);
       return;
     }
 
-    // Same-column reorder — use localTasks which has the visual order
-    const finalTasks = localTasks ?? tasks;
+    // Same-column reorder — use displayTasks which has the visual order
+    const finalTasks = localTasks ?? displayTasks;
     const columnTasks = finalTasks.filter((t) => t.status === origContainer);
     const oldIndex = columnTasks.findIndex((t) => t.id === active.id);
     const newIndex = columnTasks.findIndex((t) => t.id === over.id);
@@ -235,7 +239,11 @@ export default function ProjectDetail() {
       })
     );
 
-    await reorderTasks({ projectId: id, status: origContainer, orderedIds });
+    try {
+      await reorderTasks({ projectId: id, status: origContainer, orderedIds });
+    } catch (err) {
+      console.error('Failed to reorder tasks:', err);
+    }
     setLocalTasks(null);
   };
 

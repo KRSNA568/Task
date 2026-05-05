@@ -14,6 +14,7 @@ router.patch('/:projectId/tasks/:taskId', verifyToken, requireProjectMember(), v
 router.delete('/:projectId/tasks/:taskId', verifyToken, requireProjectMember(), ctrl.deleteTask);
 router.post('/:projectId/tasks/:taskId/comments', verifyToken, requireProjectMember(), ctrl.addComment);
 router.post('/:projectId/tasks/:taskId/subtasks', verifyToken, requireProjectMember(), ctrl.createSubtask);
-router.post('/:projectId/tasks/reorder', verifyToken, requireProjectMember(['admin', 'manager']), ctrl.reorderTasks);
+// Allow all project members to reorder tasks (not just managers)
+router.post('/:projectId/tasks/reorder', verifyToken, requireProjectMember(), ctrl.reorderTasks);
 
 module.exports = router;
