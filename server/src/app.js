@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
@@ -13,12 +14,17 @@ const dashboardRoutes = require('./modules/dashboard/dashboard.routes');
 const usersRoutes = require('./modules/users/users.routes');
 
 const app = express();
+const isProd = process.env.NODE_ENV === 'production';
 
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: isProd ? undefined : false,
+}));
+
 app.use(cors({
-  origin: CLIENT_URL,
+  origin: isProd ? false : CLIENT_URL, // in prod, same origin — no CORS needed
   credentials: true,
 }));
+
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -52,5 +58,14 @@ app.use('/api/v1/dashboard', dashboardRoutes);
 app.use('/api/v1/users', usersRoutes);
 
 app.use(errorHandler);
+
+// Serve React build in production — must be after all API routes
+if (isProd) {
+  const distPath = path.join(__dirname, '../../client/dist');
+  app.use(express.static(distPath));
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+}
 
 module.exports = app;
