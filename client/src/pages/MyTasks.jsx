@@ -1,49 +1,61 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { I } from '../components/common/icons';
 import { PriorityBadge, StatusPill } from '../components/common/Badge';
 import Skeleton from '../components/common/Skeleton';
 import { useMyTasks } from '../hooks/useDashboard';
 import { formatDate, isOverdue } from '../data/meta';
 
-const FILTER_TABS = ['All', 'To Do', 'In Progress', 'In Review', 'Done', 'Overdue'];
-const STATUS_MAP = {
-  'To Do': 'todo',
-  'In Progress': 'in_progress',
-  'In Review': 'review',
-  'Done': 'done',
-};
+const FILTER_TABS = [
+  { key: 'All', label: 'All' },
+  { key: 'todo', label: 'To Do' },
+  { key: 'in_progress', label: 'In Progress' },
+  { key: 'review', label: 'In Review' },
+  { key: 'done', label: 'Done' },
+  { key: 'overdue', label: 'Overdue' },
+];
 
 export default function MyTasks() {
   const { data: tasks = [], isLoading } = useMyTasks();
   const [activeFilter, setActiveFilter] = useState('All');
   const navigate = useNavigate();
 
+  const tabCounts = {
+    All: tasks.length,
+    todo: tasks.filter((t) => t.status === 'todo').length,
+    in_progress: tasks.filter((t) => t.status === 'in_progress').length,
+    review: tasks.filter((t) => t.status === 'review').length,
+    done: tasks.filter((t) => t.status === 'done').length,
+    overdue: tasks.filter((t) => isOverdue(t.due_date) && t.status !== 'done').length,
+  };
+
   const filtered = tasks.filter((t) => {
     if (activeFilter === 'All') return true;
-    if (activeFilter === 'Overdue') return isOverdue(t.due_date) && t.status !== 'done';
-    return t.status === STATUS_MAP[activeFilter];
+    if (activeFilter === 'overdue') return isOverdue(t.due_date) && t.status !== 'done';
+    return t.status === activeFilter;
   });
 
   return (
-    <div className="px-6 py-6 max-w-[900px] mx-auto">
+    <div className="px-6 py-6 max-w-[960px] mx-auto">
       <div className="mb-6">
         <h1 className="text-[22px] font-semibold tracking-tight">My Tasks</h1>
         <p className="text-[13px] text-fg-muted mt-0.5">{tasks.length} task{tasks.length !== 1 ? 's' : ''} assigned to you.</p>
       </div>
 
       {/* Filters */}
-      <div className="flex gap-1 mb-4 border-b border-ink-600/60">
-        {FILTER_TABS.map((f) => (
+      <div className="flex gap-1 mb-5 border-b border-ink-600/60">
+        {FILTER_TABS.map(({ key, label }) => (
           <button
-            key={f}
-            onClick={() => setActiveFilter(f)}
-            className={`h-9 px-3 text-[13px] font-medium border-b-2 transition-colors -mb-px ${
-              activeFilter === f
+            key={key}
+            onClick={() => setActiveFilter(key)}
+            className={`h-9 px-3 text-[12.5px] font-medium border-b-2 transition-colors -mb-px flex items-center gap-1.5 ${
+              activeFilter === key
                 ? 'border-brand-500 text-fg'
                 : 'border-transparent text-fg-muted hover:text-fg'
             }`}
           >
-            {f}
+            {label}
+            <span className="text-[10.5px] text-fg-dim/70">{tabCounts[key]}</span>
           </button>
         ))}
       </div>
@@ -52,7 +64,8 @@ export default function MyTasks() {
         {isLoading ? (
           <div className="divide-y divide-ink-600/40">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-4 px-5 py-3">
+              <div key={i} className="flex items-center gap-4 px-5 py-3.5">
+                <Skeleton className="h-3 w-20" />
                 <Skeleton className="h-3 flex-1" />
                 <Skeleton className="h-5 w-16" />
                 <Skeleton className="h-5 w-20" />
@@ -61,40 +74,61 @@ export default function MyTasks() {
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="py-16 text-center text-[13px] text-fg-dim">No tasks found.</div>
-        ) : (
-          <>
-            <div className="flex items-center gap-4 px-5 py-2.5 border-b border-ink-600/60">
-              <span className="flex-1 text-[11.5px] font-semibold text-fg-dim uppercase tracking-wide">Task</span>
-              <span className="w-20 text-[11.5px] font-semibold text-fg-dim uppercase tracking-wide">Priority</span>
-              <span className="w-24 text-[11.5px] font-semibold text-fg-dim uppercase tracking-wide">Status</span>
-              <span className="w-28 text-[11.5px] font-semibold text-fg-dim uppercase tracking-wide">Due</span>
+          <div className="py-16 text-center">
+            <div className="w-10 h-10 rounded-full bg-ink-600 flex items-center justify-center mx-auto mb-3">
+              <I.check size={18} className="text-brand-400" />
             </div>
-            <div className="divide-y divide-ink-600/40">
+            <p className="text-[13px] font-medium text-fg mb-1">All caught up!</p>
+            <p className="text-[12px] text-fg-dim">No tasks match this filter.</p>
+          </div>
+        ) : (
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-ink-600/60 bg-ink-800/40">
+                <th className="text-left pl-5 pr-2 h-9 text-[10.5px] font-semibold text-fg-dim uppercase tracking-wider w-[90px]">Key</th>
+                <th className="text-left px-2 h-9 text-[10.5px] font-semibold text-fg-dim uppercase tracking-wider">Task</th>
+                <th className="text-left px-2 h-9 text-[10.5px] font-semibold text-fg-dim uppercase tracking-wider w-[100px]">Priority</th>
+                <th className="text-left px-2 h-9 text-[10.5px] font-semibold text-fg-dim uppercase tracking-wider w-[115px]">Status</th>
+                <th className="text-left px-2 h-9 text-[10.5px] font-semibold text-fg-dim uppercase tracking-wider w-[110px]">Due</th>
+              </tr>
+            </thead>
+            <tbody>
               {filtered.map((task) => {
                 const overdue = isOverdue(task.due_date) && task.status !== 'done';
                 return (
-                  <button
+                  <tr
                     key={task.id}
                     onClick={() => navigate(`/projects/${task.project_id}`)}
-                    className={`w-full flex items-center gap-4 px-5 py-3 hover:bg-ink-700/40 transition-colors text-left ${
+                    className={`border-b border-ink-600/30 last:border-0 hover:bg-ink-700/40 cursor-pointer transition-colors ${
                       overdue ? 'border-l-2 border-l-red-500/60' : ''
                     }`}
                   >
-                    <span className="flex-1 min-w-0">
-                      <span className="text-[13px] text-fg font-medium truncate block">{task.title}</span>
-                      <span className="text-[11.5px] text-fg-dim">{task.project_name}</span>
-                    </span>
-                    <span className="w-20"><PriorityBadge priority={task.priority} /></span>
-                    <span className="w-24"><StatusPill status={task.status} /></span>
-                    <span className={`w-28 text-[12px] num ${overdue ? 'text-red-400' : 'text-fg-dim'}`}>
-                      {formatDate(task.due_date)}
-                    </span>
-                  </button>
+                    <td className="pl-5 pr-2 py-3 align-middle">
+                      <span className="text-[11.5px] font-mono text-fg-dim">{task.task_key || '—'}</span>
+                    </td>
+                    <td className="px-2 py-3 align-middle">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-[13px] text-fg font-medium">{task.title}</span>
+                        <div className="flex items-center gap-1.5">
+                          {task.project_color && (
+                            <span className="w-1.5 h-1.5 rounded-full" style={{ background: task.project_color }} />
+                          )}
+                          <span className="text-[11px] text-fg-dim">{task.project_name}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-2 py-3 align-middle"><PriorityBadge priority={task.priority} /></td>
+                    <td className="px-2 py-3 align-middle"><StatusPill status={task.status} /></td>
+                    <td className="px-2 py-3 align-middle">
+                      <span className={`text-[12px] num ${overdue ? 'text-red-400' : 'text-fg-dim'}`}>
+                        {formatDate(task.due_date)}
+                      </span>
+                    </td>
+                  </tr>
                 );
               })}
-            </div>
-          </>
+            </tbody>
+          </table>
         )}
       </div>
     </div>
