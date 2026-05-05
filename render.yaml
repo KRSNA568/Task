@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: taskflow
+    runtime: node
+    buildCommand: cd client && npm install && npm run build && cd ../server && npm install
+    startCommand: node server/server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
