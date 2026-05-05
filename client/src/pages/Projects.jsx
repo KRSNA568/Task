@@ -1,12 +1,12 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { I } from '../components/common/icons';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import { AvatarStack } from '../components/common/Avatar';
 import Skeleton from '../components/common/Skeleton';
 import { useProjects, useCreateProject } from '../hooks/useProjects';
-import { useAuth } from '../context/AuthContext';
+import { usePermissions } from '../hooks/usePermissions';
 import { PROJ_STATUS, PROJECT_COLORS } from '../data/meta';
 
 const STATUS_TABS = ['All', 'Active', 'On Hold', 'Completed'];
@@ -16,6 +16,7 @@ function ProjectCard({ project, index }) {
   const navigate = useNavigate();
   const ps = PROJ_STATUS[project.status] || PROJ_STATUS.active;
   const memberNames = (project.members || []).map((m) => m.name);
+  const color = project.color || PROJECT_COLORS[index % PROJECT_COLORS.length];
   const progress = project.task_count
     ? Math.round(((project.done_count || 0) / project.task_count) * 100)
     : 0;
@@ -26,14 +27,16 @@ function ProjectCard({ project, index }) {
       className="bg-ink-700/40 border border-ink-500/60 rounded-xl p-5 text-left hover:border-ink-400/60 transition-colors group"
     >
       <div className="flex items-start justify-between gap-3 mb-3">
-        <div className="flex items-center gap-2.5">
-          <span
-            className="w-3 h-3 rounded-full shrink-0"
-            style={{ background: PROJECT_COLORS[index % PROJECT_COLORS.length] }}
-          />
-          <h3 className="text-[14px] font-semibold text-fg group-hover:text-brand-400 transition-colors leading-tight">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <span className="w-3 h-3 rounded-full shrink-0" style={{ background: color }} />
+          <h3 className="text-[14px] font-semibold text-fg group-hover:text-brand-400 transition-colors leading-tight truncate">
             {project.name}
           </h3>
+          {project.key && (
+            <span className="px-1.5 py-0.5 rounded bg-ink-600 text-[10.5px] font-mono text-fg-dim shrink-0">
+              {project.key}
+            </span>
+          )}
         </div>
         <span className={`text-[11px] font-medium px-1.5 py-0.5 rounded ${ps.bg} ${ps.text} shrink-0`}>
           {ps.label}
@@ -54,8 +57,8 @@ function ProjectCard({ project, index }) {
         </div>
         <div className="h-1 bg-ink-600 rounded-full overflow-hidden">
           <div
-            className="h-full bg-brand-500 rounded-full transition-all"
-            style={{ width: `${progress}%` }}
+            className="h-full rounded-full transition-all"
+            style={{ width: `${progress}%`, background: color }}
           />
         </div>
       </div>
@@ -149,9 +152,24 @@ function CreateProjectModal({ onClose }) {
 
 export default function Projects() {
   const { data: projects = [], isLoading } = useProjects();
-  const { user } = useAuth();
+  const { canCreateProject } = usePermissions();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState('All');
-  const [showCreate, setShowCreate] = useState(false);
+  const [showCreate, setShowCreate] = useState(searchParams.get('new') === '1');
+
+  useEffect(() => {
+    if (searchParams.get('new') === '1') {
+      setShowCreate(true);
+      setSearchParams({}, { replace: true });
+    }
+  }, []);
+
+  const tabCounts = {
+    All: projects.length,
+    Active: projects.filter((p) => p.status === 'active').length,
+    'On Hold': projects.filter((p) => p.status === 'on_hold').length,
+    Completed: projects.filter((p) => p.status === 'completed').length,
+  };
 
   const filtered = projects.filter((p) => {
     const key = STATUS_KEY[activeTab];
@@ -165,7 +183,7 @@ export default function Projects() {
           <h1 className="text-[22px] font-semibold tracking-tight">Projects</h1>
           <p className="text-[13px] text-fg-muted mt-0.5">{projects.length} project{projects.length !== 1 ? 's' : ''} in your workspace.</p>
         </div>
-        {user?.role === 'admin' && (
+        {canCreateProject && (
           <Button variant="primary" size="md" icon={<I.plus size={13} />} onClick={() => setShowCreate(true)}>
             New project
           </Button>
@@ -178,13 +196,14 @@ export default function Projects() {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`h-9 px-3 text-[13px] font-medium border-b-2 transition-colors -mb-px ${
+            className={`h-9 px-3 text-[13px] font-medium border-b-2 transition-colors -mb-px flex items-center gap-1.5 ${
               activeTab === tab
                 ? 'border-brand-500 text-fg'
                 : 'border-transparent text-fg-muted hover:text-fg'
             }`}
           >
             {tab}
+            <span className="text-[11px] text-fg-dim/70">{tabCounts[tab]}</span>
           </button>
         ))}
       </div>

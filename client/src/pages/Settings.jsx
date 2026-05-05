@@ -4,8 +4,103 @@ import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import { Avatar } from '../components/common/Avatar';
 import { Badge } from '../components/common/Badge';
-import { useProjects, useUpdateProject, useDeleteProject } from '../hooks/useProjects';
+import Skeleton from '../components/common/Skeleton';
+import { useProjects, useUpdateProject, useDeleteProject, useAddMember, useRemoveMember } from '../hooks/useProjects';
+import { useSearchUsers } from '../hooks/useUsers';
 import { useNavigate } from 'react-router-dom';
+import { PROJECT_ROLES } from '../data/meta';
+
+const MEMBER_ROLE_OPTIONS = [
+  { value: 'manager', label: 'Manager', desc: 'Can manage project, add members, create/edit all tasks' },
+  { value: 'member',  label: 'Member',  desc: 'Can work on assigned tasks' },
+];
+
+function AddMemberModal({ projectId, onClose }) {
+  const [q, setQ] = useState('');
+  const [selected, setSelected] = useState(null);
+  const [role, setRole] = useState('member');
+  const { data: results = [], isFetching } = useSearchUsers(q);
+  const { mutateAsync: addMember, isPending } = useAddMember();
+
+  const handleSubmit = async () => {
+    if (!selected) return;
+    await addMember({ projectId, userId: selected.id, role });
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-900/70 backdrop-blur-sm fade-in">
+      <div className="bg-ink-800 border border-ink-500 rounded-xl shadow-panel w-full max-w-[480px] scale-in overflow-hidden">
+        <div className="flex items-center justify-between px-5 h-12 border-b border-ink-600">
+          <h3 className="text-[14px] font-semibold">Add member to project</h3>
+          <button onClick={onClose} className="text-fg-muted hover:text-fg transition-colors">
+            <I.x size={15} />
+          </button>
+        </div>
+
+        <div className="p-5 space-y-4">
+          <Input
+            label="Search by name or email"
+            icon={<I.search size={13} />}
+            placeholder="e.g. Alex Chen"
+            value={q}
+            onChange={(e) => { setQ(e.target.value); setSelected(null); }}
+            autoFocus
+          />
+
+          {q.length >= 2 && (
+            <div className="bg-ink-700 border border-ink-500/60 rounded-lg max-h-40 overflow-y-auto">
+              {isFetching ? (
+                <div className="p-3 space-y-2">
+                  {[1, 2].map((i) => <Skeleton key={i} className="h-9 rounded" />)}
+                </div>
+              ) : results.length === 0 ? (
+                <div className="px-3 py-4 text-center text-[12.5px] text-fg-dim">No users found.</div>
+              ) : (
+                results.map((u) => (
+                  <button
+                    key={u.id}
+                    onClick={() => { setSelected(u); setQ(u.name); }}
+                    className={`w-full flex items-center gap-3 px-3 h-11 hover:bg-ink-600 text-left transition-colors ${selected?.id === u.id ? 'bg-ink-600' : ''}`}
+                  >
+                    <Avatar name={u.name} size={26} />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[13px] font-medium text-fg">{u.name}</div>
+                      <div className="text-[11px] text-fg-dim">{u.email}</div>
+                    </div>
+                  </button>
+                ))
+              )}
+            </div>
+          )}
+
+          <div>
+            <label className="text-[12px] font-medium text-fg-muted block mb-1.5">Project role</label>
+            <div className="grid grid-cols-2 gap-2">
+              {MEMBER_ROLE_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setRole(opt.value)}
+                  className={`p-2.5 rounded-lg border text-left transition-colors ${role === opt.value ? 'border-brand-500 bg-brand-500/10' : 'border-ink-500 hover:border-ink-400'}`}
+                >
+                  <div className="text-[12px] font-semibold text-fg">{opt.label}</div>
+                  <div className="text-[10.5px] text-fg-dim mt-0.5">{opt.desc}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-end gap-2 px-5 h-12 border-t border-ink-600">
+          <Button variant="ghost" size="md" onClick={onClose}>Cancel</Button>
+          <Button variant="primary" size="md" disabled={!selected || isPending} onClick={handleSubmit}>
+            {isPending ? 'Adding…' : 'Add to project'}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function Toggle({ checked, onChange }) {
   return (
@@ -44,9 +139,11 @@ export default function Settings() {
   const [tab, setTab] = useState('general');
   const { data: projects = [] } = useProjects();
   const [selectedProjectId, setSelectedProjectId] = useState('');
+  const [showAddMember, setShowAddMember] = useState(false);
   const navigate = useNavigate();
 
   const project = projects.find((p) => p.id === selectedProjectId) || projects[0];
+  const { mutateAsync: removeMember } = useRemoveMember();
 
   const [projectName, setProjectName] = useState('');
   const [confirmText, setConfirmText] = useState('');
@@ -157,19 +254,38 @@ export default function Settings() {
                     {(project?.members || []).length} people have access to this project.
                   </div>
                 </div>
-                <Button variant="primary" size="md" icon={<I.plus size={13} />}>Add member</Button>
+                <Button
+                  variant="primary"
+                  size="md"
+                  icon={<I.plus size={13} />}
+                  onClick={() => setShowAddMember(true)}
+                >
+                  Add member
+                </Button>
               </div>
               <div className="space-y-1">
-                {(project?.members || []).map((u, i) => (
-                  <div key={u.id} className="flex items-center gap-3 h-11 px-2 rounded-md hover:bg-ink-700/60 transition-colors">
-                    <Avatar name={u.name} size={28} />
-                    <div className="flex-1 min-w-0">
-                      <div className="text-[13px] font-medium text-fg leading-tight">{u.name}</div>
-                      <div className="text-[11px] text-fg-dim">{u.email}</div>
+                {(project?.members || []).map((u) => {
+                  const prole = PROJECT_ROLES[u.project_role] || PROJECT_ROLES.member;
+                  return (
+                    <div key={u.id} className="flex items-center gap-3 h-11 px-2 rounded-md hover:bg-ink-700/60 transition-colors group">
+                      <Avatar name={u.name} size={28} />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[13px] font-medium text-fg leading-tight">{u.name}</div>
+                        <div className="text-[11px] text-fg-dim">{u.email}</div>
+                      </div>
+                      <Badge tone={prole.tone}>{prole.label}</Badge>
+                      <button
+                        onClick={() => removeMember({ projectId: project.id, userId: u.id })}
+                        className="ml-2 opacity-0 group-hover:opacity-100 text-[11.5px] text-red-400 hover:bg-red-500/10 h-6 px-2 rounded transition-all"
+                      >
+                        Remove
+                      </button>
                     </div>
-                    <Badge tone={u.role === 'admin' ? 'brand' : 'neutral'}>{u.role}</Badge>
-                  </div>
-                ))}
+                  );
+                })}
+                {(project?.members || []).length === 0 && (
+                  <div className="py-8 text-center text-[12.5px] text-fg-dim">No members yet.</div>
+                )}
               </div>
             </div>
           )}
@@ -227,6 +343,13 @@ export default function Settings() {
           )}
         </div>
       </div>
+
+      {showAddMember && project && (
+        <AddMemberModal
+          projectId={project.id}
+          onClose={() => setShowAddMember(false)}
+        />
+      )}
     </div>
   );
 }
