@@ -1,10 +1,16 @@
+const { error } = require('../utils/apiResponse');
+
 const requireRole = (...roles) => (req, res, next) => {
-  if (!roles.includes(req.user.role))
-    return res.status(403).json({
-      success: false,
-      message: `Forbidden: requires role [${roles.join(', ')}]`,
-    });
-  next();
+  if (!req.user) return error(res, 'Unauthorized', 401);
+  if (roles.includes(req.user.role)) return next();
+  return error(res, 'Insufficient permissions', 403);
 };
 
-module.exports = { requireRole };
+// Admin OR project_manager global role
+const requirePMOrAdmin = (req, res, next) => {
+  if (!req.user) return error(res, 'Unauthorized', 401);
+  if (req.user.role === 'admin' || req.user.role === 'project_manager') return next();
+  return error(res, 'Insufficient permissions', 403);
+};
+
+module.exports = { requireRole, requirePMOrAdmin };

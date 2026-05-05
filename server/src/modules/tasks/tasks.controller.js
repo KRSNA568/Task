@@ -20,7 +20,7 @@ const getTaskById = async (req, res, next) => {
 const createTask = async (req, res, next) => {
   try {
     const task = await svc.createTask(req.params.projectId, req.body, req.user.id);
-    await logActivity(req.params.projectId, req.user.id, 'task.created', { taskId: task.id, title: task.title });
+    await logActivity(req.params.projectId, req.user.id, 'task.created', { title: task.title }, task.id);
     return success(res, task, 'Task created', 201);
   } catch (err) { next(err); }
 };
@@ -31,25 +31,32 @@ const updateTask = async (req, res, next) => {
     const meta = await svc.getTaskMeta(taskId);
 
     const isGlobalAdmin = req.user.role === 'admin';
-    const isProjectAdmin = req.projectRole === 'admin';
-    const isAssignee = meta.created_by === req.user.id;
+    const isPM = req.projectRole === 'manager' || req.projectRole === 'admin';
+    const isOwner = meta.created_by === req.user.id || meta.assigned_to === req.user.id;
 
-    // Members can only update status of tasks; admins can update anything
-    if (!isGlobalAdmin && !isProjectAdmin) {
-      const allowedFields = ['status'];
-      const requestedFields = Object.keys(req.body);
-      const forbidden = requestedFields.filter((f) => !allowedFields.includes(f));
+    // Members can only edit tasks they own (created or assigned) and only certain fields
+    if (!isGlobalAdmin && !isPM) {
+      if (!isOwner)
+        return error(res, 'You can only edit your own tasks', 403);
+      const allowedFields = ['status', 'description', 'due_date', 'order_index'];
+      const forbidden = Object.keys(req.body).filter((f) => !allowedFields.includes(f));
       if (forbidden.length > 0)
-        return error(res, 'Members can only update task status', 403);
+        return error(res, 'Members can only update status, description and due date', 403);
     }
 
     const task = await svc.updateTask(taskId, req.body);
-    if (req.body.status) {
-      await logActivity(projectId, req.user.id, 'task.status_changed', { taskId, status: req.body.status });
-    } else {
-      await logActivity(projectId, req.user.id, 'task.updated', { taskId });
-    }
+    const action = req.body.status ? 'task.status_changed' : 'task.updated';
+    await logActivity(projectId, req.user.id, action, req.body, taskId);
     return success(res, task, 'Task updated');
+  } catch (err) { next(err); }
+};
+
+const reorderTasks = async (req, res, next) => {
+  try {
+    const { projectId } = req.params;
+    const { status, orderedIds } = req.body;
+    await svc.reorderTasks(projectId, status, orderedIds);
+    return success(res, null, 'Tasks reordered');
   } catch (err) { next(err); }
 };
 
@@ -59,16 +66,33 @@ const deleteTask = async (req, res, next) => {
     const meta = await svc.getTaskMeta(taskId);
 
     const isGlobalAdmin = req.user.role === 'admin';
-    const isProjectAdmin = req.projectRole === 'admin';
-    const isTaskOwner = meta.created_by === req.user.id;
+    const isPM = req.projectRole === 'manager' || req.projectRole === 'admin';
+    const isTaskCreator = meta.created_by === req.user.id;
 
-    if (!isGlobalAdmin && !isProjectAdmin && !isTaskOwner)
+    if (!isGlobalAdmin && !isPM && !isTaskCreator)
       return error(res, 'Cannot delete this task', 403);
 
     await svc.deleteTask(taskId);
-    await logActivity(projectId, req.user.id, 'task.deleted', { taskId });
     return success(res, null, 'Task deleted');
   } catch (err) { next(err); }
 };
 
-module.exports = { getTasks, getTaskById, createTask, updateTask, deleteTask };
+const addComment = async (req, res, next) => {
+  try {
+    const { projectId, taskId } = req.params;
+    const { body } = req.body;
+    if (!body?.trim()) return error(res, 'Comment body required', 422);
+    const comment = await svc.addComment(projectId, taskId, req.user.id, body.trim());
+    return success(res, comment, 'Comment added', 201);
+  } catch (err) { next(err); }
+};
+
+const createSubtask = async (req, res, next) => {
+  try {
+    const { projectId, taskId } = req.params;
+    const subtask = await svc.createSubtask(projectId, taskId, req.body, req.user.id);
+    return success(res, subtask, 'Subtask created', 201);
+  } catch (err) { next(err); }
+};
+
+module.exports = { getTasks, getTaskById, createTask, updateTask, reorderTasks, deleteTask, addComment, createSubtask };

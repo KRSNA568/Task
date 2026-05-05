@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #27272A; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #3F3F46; }
+
+/* Grid background (login screen) */
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* Skeleton shimmer */
+.skeleton {
+  background: linear-gradient(90deg, #18181B 25%, #1F1F23 50%, #18181B 75%);
+  background-size: 200% 100%;
+  animation: shimmer 2s linear infinite;
+}
+
+/* Slide-in panel */
+.slide-in-right { animation: slideInRight 0.22s cubic-bezier(0.16,1,0.3,1); }
+
+/* Fade / scale transitions */
+.fade-in  { animation: fadeIn 0.15s ease; }
+.scale-in { animation: scaleIn 0.15s ease; }
+
+/* Monospaced numbers */
+.num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+
+/* Focus ring helper */
+.focus-ring:focus-visible {
+  outline: 2px solid #10B981;
+  outline-offset: 2px;
+}
+
+@layer base {
+  * { box-sizing: border-box; }
+  body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
+}

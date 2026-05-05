@@ -3,8 +3,7 @@ const { success, error } = require('../../utils/apiResponse');
 
 const getProjects = async (req, res, next) => {
   try {
-    const isAdmin = req.user.role === 'admin';
-    const projects = await svc.getProjects(req.user.id, isAdmin);
+    const projects = await svc.getProjects(req.user.id, req.user.role);
     return success(res, projects, 'Projects fetched');
   } catch (err) { next(err); }
 };
@@ -43,7 +42,7 @@ const deleteProject = async (req, res, next) => {
 const addMember = async (req, res, next) => {
   try {
     const { userId, role } = req.body;
-    const member = await svc.addMember(req.params.projectId, userId, role || 'member');
+    const member = await svc.addMember(req.params.projectId, userId, role);
     await svc.logActivity(req.params.projectId, req.user.id, 'member.added', { userId, role });
     return success(res, member, 'Member added', 201);
   } catch (err) { next(err); }

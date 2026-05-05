@@ -50,7 +50,7 @@ const refreshToken = async (req, res, next) => {
 
     const { accessToken, refreshToken: newRefreshToken } = issueTokens(user);
     res.cookie('refreshToken', newRefreshToken, COOKIE_OPTIONS);
-    return success(res, { accessToken }, 'Token refreshed');
+    return success(res, { user, accessToken }, 'Token refreshed');
   } catch (err) {
     next(err);
   }
