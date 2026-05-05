@@ -1,53 +1,87 @@
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { I } from '../common/icons';
 import { Avatar } from '../common/Avatar';
 import { PriorityBadge } from '../common/Badge';
 import { formatDate, isOverdue } from '../../data/meta';
 
-export default function KanbanCard({ task, onClick }) {
+export default function KanbanCard({ task, onClick, isDragging }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging: isSortableDragging,
+  } = useSortable({ id: task.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isSortableDragging ? 0.4 : 1,
+  };
+
   const overdue = isOverdue(task.due_date) && task.status !== 'done';
 
   return (
     <div
-      onClick={onClick}
-      className="bg-ink-700/60 border border-ink-500/60 rounded-lg p-3 cursor-pointer hover:border-ink-400/60 hover:bg-ink-700 transition-colors group"
+      ref={setNodeRef}
+      style={style}
+      className={`bg-ink-700/60 border border-ink-500/50 rounded-lg p-3 cursor-pointer hover:border-ink-400/70 hover:bg-ink-700 transition-colors group ${isSortableDragging ? 'shadow-panel' : ''}`}
     >
-      {/* Drag handle */}
-      <div className="flex items-start gap-2">
-        <span className="text-fg-dim opacity-0 group-hover:opacity-100 transition-opacity mt-0.5 cursor-grab">
-          <I.drag size={14} />
+      {/* Drag handle + task key row */}
+      <div className="flex items-center gap-1.5 mb-2">
+        <span
+          {...attributes}
+          {...listeners}
+          className="text-fg-dim opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <I.drag size={13} />
         </span>
-        <div className="flex-1 min-w-0">
-          <p className="text-[13px] font-medium text-fg leading-snug mb-2">{task.title}</p>
+        {task.task_key && (
+          <span className="text-[10.5px] font-mono text-fg-dim/70">{task.task_key}</span>
+        )}
+        <span className="flex-1" />
+        {task.comment_count > 0 && (
+          <span className="flex items-center gap-0.5 text-[11px] text-fg-dim">
+            <I.message size={10} />
+            {task.comment_count}
+          </span>
+        )}
+      </div>
 
-          <div className="flex items-center gap-1.5 flex-wrap mb-2">
-            <PriorityBadge priority={task.priority} />
-            {task.tags?.slice(0, 2).map((tag) => (
-              <span key={tag} className="px-1.5 py-0.5 rounded bg-ink-500/50 text-[10.5px] text-fg-dim">
-                {tag}
-              </span>
-            ))}
-          </div>
+      {/* Title */}
+      <p
+        className="text-[13px] font-medium text-fg leading-snug mb-2.5"
+        onClick={onClick}
+      >
+        {task.title}
+      </p>
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-fg-dim text-[11.5px]">
-              {task.due_date && (
-                <span className={`flex items-center gap-1 ${overdue ? 'text-red-400' : ''}`}>
-                  <I.calendar size={11} />
-                  {formatDate(task.due_date)}
-                </span>
-              )}
-              {task.comment_count > 0 && (
-                <span className="flex items-center gap-1">
-                  <I.message size={11} />
-                  {task.comment_count}
-                </span>
-              )}
-            </div>
-            {task.assignee_name && (
-              <Avatar name={task.assignee_name} size={20} />
-            )}
-          </div>
+      {/* Tags / priority */}
+      <div className="flex items-center gap-1.5 flex-wrap mb-2.5" onClick={onClick}>
+        <PriorityBadge priority={task.priority} />
+        {task.tags?.slice(0, 2).map((tag) => (
+          <span key={tag} className="px-1.5 py-0.5 rounded bg-ink-500/50 text-[10.5px] text-fg-dim">
+            {tag}
+          </span>
+        ))}
+      </div>
+
+      {/* Footer */}
+      <div className="flex items-center justify-between" onClick={onClick}>
+        <div className="flex items-center gap-2 text-fg-dim text-[11px]">
+          {task.due_date && (
+            <span className={`flex items-center gap-1 ${overdue ? 'text-red-400' : ''}`}>
+              <I.calendar size={10} />
+              {formatDate(task.due_date)}
+            </span>
+          )}
         </div>
+        {task.assignee_name && (
+          <Avatar name={task.assignee_name} size={20} />
+        )}
       </div>
     </div>
   );

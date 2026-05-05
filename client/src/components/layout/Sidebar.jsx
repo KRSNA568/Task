@@ -4,6 +4,7 @@ import { I } from '../common/icons';
 import { Avatar } from '../common/Avatar';
 import { useAuth } from '../../context/AuthContext';
 import { useProjects } from '../../hooks/useProjects';
+import { usePermissions } from '../../hooks/usePermissions';
 import { PROJECT_COLORS } from '../../data/meta';
 
 function NavItem({ to, icon, label }) {
@@ -28,6 +29,7 @@ export default function Sidebar() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { data: projects = [] } = useProjects();
+  const { canCreateProject } = usePermissions();
   const [projectsOpen, setProjectsOpen] = useState(true);
 
   return (
@@ -66,18 +68,29 @@ export default function Sidebar() {
 
       {/* Projects list */}
       <div className="px-3 shrink-0">
-        <button
-          onClick={() => setProjectsOpen((v) => !v)}
-          className="w-full flex items-center gap-1.5 mb-1.5 text-[11px] font-semibold text-fg-dim uppercase tracking-widest hover:text-fg-muted transition-colors"
-        >
-          <span className={`transition-transform ${projectsOpen ? 'rotate-90' : ''}`}>
-            <I.chevRight size={10} />
-          </span>
-          Projects
-        </button>
+        <div className="flex items-center gap-1 mb-1.5">
+          <button
+            onClick={() => setProjectsOpen((v) => !v)}
+            className="flex items-center gap-1.5 text-[11px] font-semibold text-fg-dim uppercase tracking-widest hover:text-fg-muted transition-colors flex-1"
+          >
+            <span className={`transition-transform ${projectsOpen ? 'rotate-90' : ''}`}>
+              <I.chevRight size={10} />
+            </span>
+            Projects
+          </button>
+          {canCreateProject && (
+            <button
+              onClick={() => navigate('/projects?new=1')}
+              className="w-5 h-5 flex items-center justify-center rounded text-fg-dim hover:text-fg hover:bg-ink-700 transition-colors"
+              title="New project"
+            >
+              <I.plus size={11} />
+            </button>
+          )}
+        </div>
 
         {projectsOpen && (
-          <div className="space-y-0.5 max-h-48 overflow-y-auto">
+          <div className="space-y-0.5 max-h-52 overflow-y-auto">
             {projects.slice(0, 8).map((p, i) => (
               <NavLink
                 key={p.id}
@@ -90,23 +103,33 @@ export default function Sidebar() {
               >
                 <span
                   className="w-2 h-2 rounded-full shrink-0"
-                  style={{ background: PROJECT_COLORS[i % PROJECT_COLORS.length] }}
+                  style={{ background: p.color || PROJECT_COLORS[i % PROJECT_COLORS.length] }}
                 />
-                <span className="truncate font-medium">{p.name}</span>
+                <span className="truncate font-medium flex-1">{p.name}</span>
+                {p.key && (
+                  <span className="text-[9px] font-mono text-fg-dim/50 shrink-0">{p.key}</span>
+                )}
               </NavLink>
             ))}
+            {projects.length === 0 && (
+              <div className="text-[11.5px] text-fg-dim px-2 py-1">No projects yet</div>
+            )}
           </div>
         )}
       </div>
 
-      {/* Admin section */}
-      {user?.role === 'admin' && (
+      {/* Admin / PM section */}
+      {(user?.role === 'admin' || user?.role === 'project_manager') && (
         <>
           <div className="h-px bg-ink-600/60 mx-3 my-3 shrink-0" />
           <div className="px-3 shrink-0">
-            <div className="text-[11px] font-semibold text-fg-dim uppercase tracking-widest mb-1.5">Admin</div>
+            <div className="text-[11px] font-semibold text-fg-dim uppercase tracking-widest mb-1.5">
+              {user?.role === 'admin' ? 'Admin' : 'Manage'}
+            </div>
             <nav className="space-y-0.5">
-              <NavItem to="/admin/members" icon={<I.users size={14} />} label="Members" />
+              {user?.role === 'admin' && (
+                <NavItem to="/admin/members" icon={<I.users size={14} />} label="Members" />
+              )}
               <NavItem to="/admin/settings" icon={<I.settings size={14} />} label="Settings" />
             </nav>
           </div>
