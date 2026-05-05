@@ -19,6 +19,17 @@ export const PROJ_STATUS = {
   archived:  { label: 'Archived',  bg: 'bg-ink-500/30',     text: 'text-fg-dim',      dot: '#71717A' },
 };
 
+export const GLOBAL_ROLES = {
+  admin:           { label: 'Admin',           tone: 'brand',   desc: 'Full access to everything' },
+  project_manager: { label: 'Project Manager', tone: 'warning', desc: 'Can create and manage their projects' },
+  member:          { label: 'Member',          tone: 'neutral', desc: 'Can work on assigned tasks' },
+};
+
+export const PROJECT_ROLES = {
+  manager: { label: 'Manager', tone: 'brand' },
+  member:  { label: 'Member',  tone: 'neutral' },
+};
+
 export const PROJECT_COLORS = [
   '#6366F1','#8B5CF6','#EC4899','#F97316','#EAB308',
   '#10B981','#3B82F6','#14B8A6','#F43F5E','#84CC16',

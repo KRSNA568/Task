@@ -9,11 +9,20 @@ export function useMe() {
   });
 }
 
-export function useUsers() {
+export function useUsers(q) {
   const { users } = useApi();
   return useQuery({
-    queryKey: ['users'],
-    queryFn: () => users.listUsers().then((r) => r.data.data),
+    queryKey: ['users', q],
+    queryFn: () => users.listUsers(q).then((r) => r.data.data),
+  });
+}
+
+export function useSearchUsers(q) {
+  const { users } = useApi();
+  return useQuery({
+    queryKey: ['users-search', q],
+    queryFn: () => users.searchUsers(q).then((r) => r.data.data),
+    enabled: !!q && q.length >= 2,
   });
 }
 
@@ -23,5 +32,14 @@ export function useUpdateMe() {
   return useMutation({
     mutationFn: (data) => users.updateMe(data).then((r) => r.data.data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['me'] }),
+  });
+}
+
+export function useUpdateUserRole() {
+  const qc = useQueryClient();
+  const { users } = useApi();
+  return useMutation({
+    mutationFn: ({ userId, role }) => users.updateUserRole(userId, role).then((r) => r.data.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['users'] }),
   });
 }

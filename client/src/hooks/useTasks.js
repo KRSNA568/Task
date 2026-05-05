@@ -64,3 +64,14 @@ export function useAddComment() {
       qc.invalidateQueries({ queryKey: ['tasks', projectId, taskId] }),
   });
 }
+
+export function useReorderTasks() {
+  const qc = useQueryClient();
+  const { tasks } = useApi();
+  return useMutation({
+    mutationFn: ({ projectId, status, orderedIds }) =>
+      tasks.reorderTasks(projectId, status, orderedIds),
+    onSuccess: (_, { projectId }) =>
+      qc.invalidateQueries({ queryKey: ['tasks', projectId] }),
+  });
+}
