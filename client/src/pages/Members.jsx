@@ -180,8 +180,8 @@ export default function Members() {
   const pmCount = users.filter((u) => u.role === 'project_manager').length;
 
   return (
-    <div className="px-6 py-6 max-w-[1100px] mx-auto">
-      <div className="flex items-end justify-between mb-6">
+    <div className="px-4 py-5 sm:px-6 sm:py-6 max-w-[1100px] mx-auto">
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-[22px] font-semibold tracking-tight">Members</h1>
           <p className="text-[13px] text-fg-muted mt-0.5">
@@ -194,16 +194,18 @@ export default function Members() {
             placeholder="Search members…"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            className="w-64"
+            className="flex-1 sm:w-64"
           />
           <Button variant="primary" size="md" icon={<I.plus size={13} />} onClick={() => setShowInvite(true)}>
-            Add member
+            <span className="hidden sm:inline">Add member</span>
+            <span className="sm:hidden">Add</span>
           </Button>
         </div>
       </div>
 
       <div className="bg-ink-700/30 border border-ink-500/60 rounded-xl overflow-hidden">
-        <table className="w-full">
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[540px]">
           <thead>
             <tr className="border-b border-ink-600/60 bg-ink-800/40">
               <th className="text-left pl-5 pr-2 h-10 text-[10.5px] font-semibold text-fg-dim uppercase tracking-wider">Member</th>
@@ -268,6 +270,7 @@ export default function Members() {
             ))}
           </tbody>
         </table>
+        </div>
 
         {!isLoading && filtered.length === 0 && (
           <div className="py-12 text-center text-[13px] text-fg-dim">No members match your search.</div>

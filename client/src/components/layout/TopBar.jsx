@@ -6,7 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useApi } from '../../hooks/useApi';
 import { authApi } from '../../api/authApi';
 
-export default function TopBar({ breadcrumbs = [] }) {
+export default function TopBar({ breadcrumbs = [], onMenuClick }) {
   const { user, logout } = useAuth();
   const { raw } = useApi();
   const navigate = useNavigate();
@@ -19,7 +19,16 @@ export default function TopBar({ breadcrumbs = [] }) {
   };
 
   return (
-    <header className="h-[56px] bg-ink-800/80 backdrop-blur-sm border-b border-ink-600/60 flex items-center px-5 gap-3 sticky top-0 z-30 shrink-0">
+    <header className="h-[56px] bg-ink-800/80 backdrop-blur-sm border-b border-ink-600/60 flex items-center px-4 gap-3 sticky top-0 z-30 shrink-0">
+      {/* Hamburger — mobile only */}
+      <button
+        onClick={onMenuClick}
+        className="lg:hidden w-8 h-8 flex items-center justify-center rounded-md text-fg-dim hover:text-fg hover:bg-ink-700 transition-colors shrink-0"
+        aria-label="Open menu"
+      >
+        <I.menu size={18} />
+      </button>
+
       {/* Breadcrumbs */}
       <nav className="flex items-center gap-1.5 flex-1 min-w-0">
         {breadcrumbs.map((crumb, i) => (

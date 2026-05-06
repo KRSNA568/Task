@@ -60,6 +60,7 @@ export const I = {
   arrowRight:  (p) => <Icon {...p} d="M5 12h14M12 5l7 7-7 7" />,
   logout:      (p) => <Icon {...p} d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />,
   user:        (p) => <Icon {...p}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></Icon>,
+  menu:        (p) => <Icon {...p} d="M3 12h18M3 6h18M3 18h18" />,
 };
 
 export default Icon;

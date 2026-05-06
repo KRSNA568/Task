@@ -177,7 +177,7 @@ export default function Projects() {
   });
 
   return (
-    <div className="px-6 py-6 max-w-[1200px] mx-auto">
+    <div className="px-4 py-5 sm:px-6 sm:py-6 max-w-[1200px] mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-[22px] font-semibold tracking-tight">Projects</h1>
@@ -185,18 +185,19 @@ export default function Projects() {
         </div>
         {canCreateProject && (
           <Button variant="primary" size="md" icon={<I.plus size={13} />} onClick={() => setShowCreate(true)}>
-            New project
+            <span className="hidden sm:inline">New project</span>
+            <span className="sm:hidden">New</span>
           </Button>
         )}
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 border-b border-ink-600/60 pb-0">
+      <div className="flex gap-1 mb-6 border-b border-ink-600/60 pb-0 overflow-x-auto scrollbar-none">
         {STATUS_TABS.map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`h-9 px-3 text-[13px] font-medium border-b-2 transition-colors -mb-px flex items-center gap-1.5 ${
+            className={`h-9 px-3 text-[13px] font-medium border-b-2 transition-colors -mb-px flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
               activeTab === tab
                 ? 'border-brand-500 text-fg'
                 : 'border-transparent text-fg-muted hover:text-fg'

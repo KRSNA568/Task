@@ -36,19 +36,19 @@ export default function MyTasks() {
   });
 
   return (
-    <div className="px-6 py-6 max-w-[960px] mx-auto">
+    <div className="px-4 py-5 sm:px-6 sm:py-6 max-w-[960px] mx-auto">
       <div className="mb-6">
         <h1 className="text-[22px] font-semibold tracking-tight">My Tasks</h1>
         <p className="text-[13px] text-fg-muted mt-0.5">{tasks.length} task{tasks.length !== 1 ? 's' : ''} assigned to you.</p>
       </div>
 
       {/* Filters */}
-      <div className="flex gap-1 mb-5 border-b border-ink-600/60">
+      <div className="flex gap-1 mb-5 border-b border-ink-600/60 overflow-x-auto scrollbar-none">
         {FILTER_TABS.map(({ key, label }) => (
           <button
             key={key}
             onClick={() => setActiveFilter(key)}
-            className={`h-9 px-3 text-[12.5px] font-medium border-b-2 transition-colors -mb-px flex items-center gap-1.5 ${
+            className={`h-9 px-3 text-[12.5px] font-medium border-b-2 transition-colors -mb-px flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
               activeFilter === key
                 ? 'border-brand-500 text-fg'
                 : 'border-transparent text-fg-muted hover:text-fg'
@@ -82,7 +82,8 @@ export default function MyTasks() {
             <p className="text-[12px] text-fg-dim">No tasks match this filter.</p>
           </div>
         ) : (
-          <table className="w-full">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[560px]">
             <thead>
               <tr className="border-b border-ink-600/60 bg-ink-800/40">
                 <th className="text-left pl-5 pr-2 h-9 text-[10.5px] font-semibold text-fg-dim uppercase tracking-wider w-[90px]">Key</th>
@@ -129,6 +130,7 @@ export default function MyTasks() {
               })}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>

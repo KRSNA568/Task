@@ -275,8 +275,8 @@ export default function ProjectDetail() {
   return (
     <div className="flex flex-col h-full">
       {/* Project header */}
-      <div className="px-6 pt-5 pb-0 border-b border-ink-600/60 shrink-0">
-        <div className="flex items-start justify-between gap-4 pb-4">
+      <div className="px-4 sm:px-6 pt-4 sm:pt-5 pb-0 border-b border-ink-600/60 shrink-0">
+        <div className="flex items-start justify-between gap-3 pb-4 flex-wrap">
           <div className="flex items-center gap-3">
             <span
               className="w-3.5 h-3.5 rounded-full shrink-0"
@@ -302,7 +302,7 @@ export default function ProjectDetail() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-2 shrink-0">
             <AvatarStack names={memberNames} size={28} max={5} />
             {canAddProjectMembers && (
               <Button
@@ -311,7 +311,8 @@ export default function ProjectDetail() {
                 icon={<I.plus size={12} />}
                 onClick={() => setShowAddMember(true)}
               >
-                Add member
+                <span className="hidden sm:inline">Add member</span>
+                <span className="sm:hidden">Add</span>
               </Button>
             )}
           </div>
@@ -345,7 +346,7 @@ export default function ProjectDetail() {
           onDragEnd={handleDragEnd}
         >
           <div className="flex-1 overflow-x-auto overflow-y-hidden">
-            <div className="flex gap-4 px-6 py-5 h-full min-w-max">
+            <div className="flex gap-4 px-4 sm:px-6 py-5 h-full min-w-max">
               {tasksLoading ? (
                 STATUSES.map((s) => (
                   <div key={s} className="w-[300px] space-y-2">
@@ -382,9 +383,10 @@ export default function ProjectDetail() {
       )}
 
       {view === 'List' && (
-        <div className="flex-1 overflow-y-auto px-6 py-5">
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5">
           <div className="bg-ink-700/30 border border-ink-500/60 rounded-xl overflow-hidden">
-            <table className="w-full">
+            <div className="overflow-x-auto">
+            <table className="w-full min-w-[580px]">
               <thead>
                 <tr className="border-b border-ink-600/60 bg-ink-800/40">
                   <th className="text-left pl-5 pr-2 h-9 text-[10.5px] font-semibold text-fg-dim uppercase tracking-wider w-[90px]">Key</th>
@@ -436,6 +438,7 @@ export default function ProjectDetail() {
                 })}
               </tbody>
             </table>
+            </div>
           </div>
         </div>
       )}

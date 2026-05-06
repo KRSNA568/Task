@@ -99,7 +99,7 @@ export default function Dashboard() {
   });
 
   return (
-    <div className="px-6 py-6 max-w-[1200px] mx-auto">
+    <div className="px-4 py-5 sm:px-6 sm:py-6 max-w-[1200px] mx-auto">
       {/* Greeting */}
       <div className="mb-6">
         <h1 className="text-[22px] font-semibold tracking-tight">
@@ -157,14 +157,14 @@ export default function Dashboard() {
 
           {/* My Tasks */}
           <div className="bg-ink-700/30 border border-ink-500/60 rounded-xl overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-3.5 border-b border-ink-600/60">
-              <h2 className="text-[14px] font-semibold">My Tasks</h2>
-              <div className="flex gap-1">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-5 py-3.5 border-b border-ink-600/60">
+              <h2 className="text-[14px] font-semibold shrink-0">My Tasks</h2>
+              <div className="flex gap-1 overflow-x-auto scrollbar-none pb-0.5 sm:pb-0">
                 {FILTER_TABS.map(({ key, label }) => (
                   <button
                     key={key}
                     onClick={() => setActiveFilter(key)}
-                    className={`h-7 px-2.5 rounded-md text-[12px] font-medium transition-colors flex items-center gap-1.5 ${
+                    className={`h-7 px-2.5 rounded-md text-[12px] font-medium transition-colors flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
                       activeFilter === key
                         ? 'bg-ink-600 text-fg'
                         : 'text-fg-muted hover:text-fg hover:bg-ink-700/70'
@@ -200,7 +200,8 @@ export default function Dashboard() {
                 <p className="text-[12px] text-fg-dim">No tasks match this filter.</p>
               </div>
             ) : (
-              <table className="w-full">
+              <div className="overflow-x-auto">
+              <table className="w-full min-w-[560px]">
                 <thead>
                   <tr className="border-b border-ink-600/40">
                     <th className="text-left pl-5 pr-2 h-9 text-[10.5px] font-semibold text-fg-dim uppercase tracking-wider w-[90px]">Key</th>
@@ -259,6 +260,7 @@ export default function Dashboard() {
                   })}
                 </tbody>
               </table>
+              </div>
             )}
           </div>
         </div>

@@ -119,7 +119,7 @@ function Toggle({ checked, onChange }) {
 
 function SettingsRow({ title, hint, children, danger = false }) {
   return (
-    <div className={`flex items-start justify-between gap-6 py-4 ${danger ? '' : 'border-b border-ink-500/40 last:border-0'}`}>
+    <div className={`flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-6 py-4 ${danger ? '' : 'border-b border-ink-500/40 last:border-0'}`}>
       <div className="min-w-0 max-w-md">
         <div className={`text-[13px] font-semibold ${danger ? 'text-red-400' : 'text-fg'}`}>{title}</div>
         {hint && <div className="text-[12px] text-fg-muted mt-1 leading-relaxed">{hint}</div>}
@@ -166,7 +166,7 @@ export default function Settings() {
   };
 
   return (
-    <div className="px-6 py-6 max-w-[1080px] mx-auto">
+    <div className="px-4 py-5 sm:px-6 sm:py-6 max-w-[1080px] mx-auto">
       <div className="mb-5">
         <div className="text-[11.5px] text-fg-dim font-mono mb-1">Workspace · Admin</div>
         <h1 className="text-[20px] font-semibold tracking-tight">Settings</h1>
@@ -189,15 +189,15 @@ export default function Settings() {
         </div>
       )}
 
-      <div className="flex gap-8">
+      <div className="flex flex-col sm:flex-row gap-6 sm:gap-8">
         {/* Mini-nav */}
-        <nav className="w-[200px] shrink-0 sticky top-6 self-start">
-          <div className="space-y-0.5">
+        <nav className="sm:w-[200px] sm:shrink-0 sm:sticky sm:top-6 sm:self-start">
+          <div className="flex sm:flex-col gap-1 overflow-x-auto scrollbar-none sm:overflow-visible">
             {NAV_ITEMS.map((n) => (
               <button
                 key={n.id}
                 onClick={() => setTab(n.id)}
-                className={`w-full h-8 flex items-center gap-2 px-2.5 rounded-md text-[12.5px] text-left transition-colors ${
+                className={`h-8 sm:w-full flex items-center gap-2 px-2.5 rounded-md text-[12.5px] text-left transition-colors whitespace-nowrap shrink-0 sm:shrink ${
                   tab === n.id
                     ? (n.danger ? 'bg-red-500/10 text-red-400' : 'bg-ink-600 text-fg')
                     : (n.danger ? 'text-red-400/70 hover:text-red-400 hover:bg-red-500/5' : 'text-fg-muted hover:text-fg hover:bg-ink-700/70')

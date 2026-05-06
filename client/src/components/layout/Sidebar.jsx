@@ -7,10 +7,11 @@ import { useProjects } from '../../hooks/useProjects';
 import { usePermissions } from '../../hooks/usePermissions';
 import { PROJECT_COLORS } from '../../data/meta';
 
-function NavItem({ to, icon, label }) {
+function NavItem({ to, icon, label, onClick }) {
   return (
     <NavLink
       to={to}
+      onClick={onClick}
       className={({ isActive }) =>
         `flex items-center gap-2.5 h-8 px-2.5 rounded-md text-[13px] transition-colors ${
           isActive
@@ -25,15 +26,32 @@ function NavItem({ to, icon, label }) {
   );
 }
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { data: projects = [] } = useProjects();
   const { canCreateProject } = usePermissions();
   const [projectsOpen, setProjectsOpen] = useState(true);
 
+  const handleNavClick = () => {
+    if (onClose) onClose();
+  };
+
   return (
-    <aside className="w-[240px] shrink-0 h-screen bg-ink-800 border-r border-ink-600/60 flex flex-col overflow-hidden">
+    <>
+      {/* Mobile overlay */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-ink-900/60 backdrop-blur-sm lg:hidden"
+          onClick={onClose}
+        />
+      )}
+      <aside className={`
+        fixed inset-y-0 left-0 z-50 w-[240px] bg-ink-800 border-r border-ink-600/60 flex flex-col overflow-hidden
+        transition-transform duration-200
+        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+        lg:relative lg:translate-x-0 lg:shrink-0 lg:z-auto
+      `}>
       {/* Workspace header */}
       <div className="flex items-center gap-2.5 px-3 h-[56px] border-b border-ink-600/60 shrink-0">
         <div className="w-6 h-6 rounded-md bg-brand-500/20 flex items-center justify-center">
@@ -59,9 +77,9 @@ export default function Sidebar() {
 
       {/* Nav */}
       <nav className="px-3 space-y-0.5 shrink-0">
-        <NavItem to="/dashboard" icon={<I.home size={14} />} label="Dashboard" />
-        <NavItem to="/my-tasks" icon={<I.square size={14} />} label="My Tasks" />
-        <NavItem to="/projects" icon={<I.folder size={14} />} label="Projects" />
+        <NavItem to="/dashboard" icon={<I.home size={14} />} label="Dashboard" onClick={handleNavClick} />
+        <NavItem to="/my-tasks" icon={<I.square size={14} />} label="My Tasks" onClick={handleNavClick} />
+        <NavItem to="/projects" icon={<I.folder size={14} />} label="Projects" onClick={handleNavClick} />
       </nav>
 
       <div className="h-px bg-ink-600/60 mx-3 my-3 shrink-0" />
@@ -95,6 +113,7 @@ export default function Sidebar() {
               <NavLink
                 key={p.id}
                 to={`/projects/${p.id}`}
+                onClick={handleNavClick}
                 className={({ isActive }) =>
                   `flex items-center gap-2 h-7 px-2 rounded-md text-[12.5px] transition-colors ${
                     isActive ? 'bg-ink-600 text-fg' : 'text-fg-muted hover:text-fg hover:bg-ink-700/70'
@@ -128,9 +147,9 @@ export default function Sidebar() {
             </div>
             <nav className="space-y-0.5">
               {user?.role === 'admin' && (
-                <NavItem to="/admin/members" icon={<I.users size={14} />} label="Members" />
+                <NavItem to="/admin/members" icon={<I.users size={14} />} label="Members" onClick={handleNavClick} />
               )}
-              <NavItem to="/admin/settings" icon={<I.settings size={14} />} label="Settings" />
+              <NavItem to="/admin/settings" icon={<I.settings size={14} />} label="Settings" onClick={handleNavClick} />
             </nav>
           </div>
         </>
@@ -142,7 +161,7 @@ export default function Sidebar() {
       {/* User card */}
       <div className="px-3 py-3 border-t border-ink-600/60 shrink-0">
         <button
-          onClick={() => navigate('/profile')}
+          onClick={() => { navigate('/profile'); handleNavClick(); }}
           className="w-full flex items-center gap-2.5 h-9 px-2 rounded-md hover:bg-ink-700/70 transition-colors"
         >
           <Avatar name={user?.name || ''} size={26} />
@@ -153,5 +172,6 @@ export default function Sidebar() {
         </button>
       </div>
     </aside>
+    </>
   );
 }

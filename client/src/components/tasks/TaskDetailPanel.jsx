@@ -162,7 +162,7 @@ export default function TaskDetailPanel({ task, projectId, members = [], onClose
       />
 
       {/* Panel */}
-      <div className="fixed right-0 top-0 bottom-0 w-[480px] z-50 bg-ink-800 border-l border-ink-600/60 flex flex-col shadow-panel slide-in-right">
+      <div className="fixed right-0 top-0 bottom-0 w-full sm:w-[480px] z-50 bg-ink-800 border-l border-ink-600/60 flex flex-col shadow-panel slide-in-right">
         {/* Header */}
         <div className="flex items-center gap-2 px-4 py-3 border-b border-ink-600/60 shrink-0">
           {task.project_color && (
